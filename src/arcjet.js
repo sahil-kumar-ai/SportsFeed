@@ -3,7 +3,7 @@ import arcjet, { detectBot, shield, slidingWindow } from "@arcjet/node";
 const arcjetKey = process.env.ARCJET_KEY;
 const arcjetMode = process.env.ARCJET_MODE ===  'DRY_RUN' ? 'DRY_RUN' : 'LIVE';
 
-if (!arcjetKey) throw new error ('ARCJET_KEY env variable is missing!');
+if (!arcjetKey) throw new Error ('ARCJET_KEY env variable is missing!');
 
 export const httpArcJet = arcjetKey ? arcjet({
     key: arcjetKey,
@@ -35,7 +35,7 @@ export function securityMiddleware() {
                     return res.status(429).json({ error: 'Too many request' });
                 }
 
-                return res.status(429).json({ error: 'Forbidden' })
+                return res.status(429).json({ error: 'Forbidden' });
             }
         } catch (e) {
             console.error('Arcjet middleware error', e);

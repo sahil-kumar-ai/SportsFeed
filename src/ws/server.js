@@ -1,4 +1,3 @@
-import { send } from "process";
 import { WebSocket, WebSocketServer } from "ws";
 import { wsArcJet } from "../arcjet.js";
 
@@ -19,36 +18,49 @@ function broadCast(wss, payload) {
 export function attachWebSocketServer (server) {
     const wss = new WebSocketServer({server, path: '/ws', maxPayload: 1024 * 1024 })
 
-    wss.on('connection', async (socket, req) => {
-
-        if(wsArcJet) {
-            try {
-                const decision = await wsArcJet.protect(req);
-
-                if(decision.isDenied()) {
-                    const code = decision.reason.isRateLimit() ? 1013 : 1008;
-                    const reason = decision.reason.isRateLimit() ? 'Rate limit exceeded' : 'Access denied';
-
-                    socket.close(code, reason);
-                    return;
-                }
-            } catch (e) {
-                console.error('WS Connection Error');
-                socket.close(1011, 'Server Security Error');
-                return;
-            }
+    server.on('upgrade', async (req, socket, head) => {
+        if (!wsArcJet) {
+            return wss.handleUpgrade(req, socket, head, (ws) => {
+                wss.emit('connection', ws, req);
+            });
         }
 
+        try {
+            const decision = await wsArcJet.protect(req);
 
+            if (decision.isDenied()) {
+                const statusCode = decision.reason.isRateLimit() ? 429 : 403;
+                const message = decision.reason.isRateLimit() ? 'Rate limit exceeded' : 'Access denied';
+                const body = `${statusCode} ${message}`;
+
+                socket.write(`HTTP/1.1 ${statusCode} ${message}\r\n`);
+                socket.write('Content-Type: text/plain\r\n');
+                socket.write(`Content-Length: ${Buffer.byteLength(body)}\r\n`);
+                socket.write('Connection: close\r\n\r\n');
+                socket.write(body);
+                socket.destroy();
+                return;
+            }
+
+            wss.handleUpgrade(req, socket, head, (ws) => {
+                wss.emit('connection', ws, req);
+            });
+        } catch (e) {
+            console.error('WS upgrade protection error', e);
+            socket.destroy();
+        }
+    });
+
+    wss.on('connection', (socket, req) => {
         socket.isAlive = true;
         socket.on('pong', () => { socket.isAlive = true; });
 
-        sendJson(socket, { type: 'Welcocme' });
+        sendJson(socket, { type: 'Welcome' });
     });
 
     const interval = setInterval(() => {
         wss.clients.forEach((ws) => {
-            if (ws.isAlive === flase) return ws.terminate();
+            if (ws.isAlive === false) return ws.terminate();
             ws.isAlive = false;
             ws.ping();
         })
