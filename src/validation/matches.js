@@ -1,9 +1,4 @@
 import { z } from 'zod';
-import {createMatchSchema, listMatchesQuerySchema} from "../validation/matches.js";
-import {matches} from "../db/schema.js";
-import {db} from "../db/db.js";
-import {getMatchStatus} from "../utils/match-status.js";
-import {desc} from "drizzle-orm";
 
 export const MATCH_STATUS = {
   SCHEDULED: 'scheduled',
