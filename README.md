@@ -1,18 +1,48 @@
 # SportsFeed
 
-A real-time sports feed backend for creating matches, storing live commentary, and broadcasting updates over WebSockets.
+**SportsFeed** is a real-time sports data backend for live match creation, commentary ingestion, and low-latency fan-out to connected clients over WebSockets.
 
-## Overview
+Built for modern live-score and match-tracking products, SportsFeed combines a clean REST API, PostgreSQL persistence, schema-safe validation, and real-time event delivery in one service.
 
-SportsFeed is a backend service built with Node.js, Express, PostgreSQL, Drizzle ORM, and WebSockets. It lets you:
+## Key Capabilities
 
-- create and list matches
-- add and fetch match commentary
-- broadcast new matches in real time
-- broadcast commentary updates to subscribed clients
-- seed sample sports data through REST APIs
+- Real-time match and commentary delivery over WebSockets
+- REST APIs for match creation and commentary ingestion
+- PostgreSQL-backed persistence with Drizzle ORM
+- Request validation with Zod
+- API and WebSocket protection with Arcjet
+- Seed tooling for demo and local testing
+- Designed for **sub-200 ms live update targets** under normal deployment conditions
 
-This project is useful as a base for a live scorecard, match tracker, or sports dashboard application.
+---
+
+## Why SportsFeed
+
+Most sports dashboards fail on one of two things: slow update propagation or messy backend structure.
+
+SportsFeed is designed to solve both.
+
+It provides a structured backend for ingesting live commentary, persisting match data, and instantly pushing updates to subscribed clients. This makes it suitable for:
+
+- live score platforms
+- sports commentary timelines
+- match center products
+- betting-adjacent live data dashboards
+- second-screen fan engagement apps
+- internal real-time event feeds
+
+---
+
+## Architecture Overview
+
+SportsFeed follows a simple event flow:
+
+1. A match is created through the REST API
+2. Commentary is posted to a match
+3. The event is persisted in PostgreSQL
+4. Connected WebSocket clients subscribed to that match receive the update immediately
+
+This architecture keeps ingestion simple while enabling real-time delivery to frontend dashboards, admin panels, or mobile clients.
 
 ---
 
@@ -26,18 +56,6 @@ This project is useful as a base for a live scorecard, match tracker, or sports 
 - **Zod**
 - **Arcjet**
 - **dotenv**
-
----
-
-## Features
-
-- REST API for match management
-- REST API for match commentary
-- Real-time WebSocket updates
-- PostgreSQL schema for matches and commentary
-- Request validation using Zod
-- Basic API and WebSocket protection using Arcjet
-- Seed script for loading demo match/commentary data
 
 ---
 
